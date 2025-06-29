@@ -1,0 +1,13 @@
+/**:
+  ros__parameters:
+    video_fps: 100.0
+    video_save_directory: "/home/helloworld/merge/autoaim2025/" # 注意后面要有一个斜杠
+
+    debug_info_topic: "/debug_info"
+    shoot_pos_topic: "/serial/comm_send"
+
+    record_raw: true
+    image_raw_topic: "/camera/color/image_raw"
+
+    record_verbose: false
+    image_detected_topic: "/debug/detected_image"

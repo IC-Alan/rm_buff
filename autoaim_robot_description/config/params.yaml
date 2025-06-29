@@ -1,0 +1,19 @@
+/**:
+  ros__parameters:
+    
+    comm_recv_sub_topic: "/serial/comm_recv"
+
+    # Camera to gimbal transform
+    cam_to_gimbal_x: 0.1045
+    cam_to_gimbal_y: 0.11492
+    cam_to_gimbal_z: 0.0409
+
+    # Friction wheel to gimbal transform  
+    fric_to_gimbal_x: 0.0885
+    fric_to_gimbal_y: 0.0
+    fric_to_gimbal_z: 0.0
+
+    # VTM to camera transform
+    VTM_to_cam_x: 0.0
+    VTM_to_cam_y: -0.11492
+    VTM_to_cam_z: 0.0
