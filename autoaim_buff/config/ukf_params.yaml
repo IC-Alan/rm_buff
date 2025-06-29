@@ -1,0 +1,32 @@
+%YAML:1.0
+---
+
+# 均采用国际单位制，距离为m，时间为s，角度为弧度
+
+Tracker:
+  max_lost_frames: 5 # 最大的丢失帧数。超过就从TEMP_LOST变为LOST
+  converge_frames: 5 # 收敛帧数。超过则从CONVERGING变为TRACKING
+
+
+UKFBUFF:
+  process_noise_cov: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: f
+    data: [ 1e-9,  0,    0,
+             0,   1e-9, 0,
+             0,    0,    1e-9]
+  measurement_noise_cov: !!opencv-matrix
+    rows: 1
+    cols: 1
+    dt: f
+    data: [ 1e-4 ]
+#3个 -1 为默认值
+  state_cov: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: f
+    data: [ 1e-1,  0,    0,
+             0,    1e-1, 0,
+             0,    0,    1e-1 ]
+

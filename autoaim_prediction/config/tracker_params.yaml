@@ -1,0 +1,138 @@
+%YAML:1.0
+---
+
+# 均采用国际单位制，距离为m，时间为s，角度为弧度
+
+Tracker:
+# 以下Tracker参数对车和前哨站都生效
+  switch_armor_angle: 35 # (deg)角度突变的阈值，用于判断小陀螺跟踪的装甲板是否切换
+  close_height_filter_ratio: 0.80 # 较近的装甲板对应高度的惯性滤波系数
+  far_height_filter_ratio: 0.85 # 较远的装甲板对应高度的惯性滤波系数
+  converge_frames: 20 # 收敛帧数。超过则从CONVERGING变为TRACKING
+
+# 以下Tracker参数仅对车生效
+  initial_radius: 0.26 # (m)初始半径，车的初始半径
+  min_radius: 0.2 # (m)用于更新惯性滤波的半径最小值
+  max_radius: 0.4 # (m)用于更新惯性滤波的半径最大值
+  close_radius_filter_ratio: 0.95 # 较近的装甲板对应半径的惯性滤波系数
+  far_radius_filter_ratio: 0.99 # 较远的装甲板对应半径的惯性滤波系数
+  antitop_palstance_threshold: 100 # (deg/s)启用反陀螺的角速度阈值。1.74533rad/s = 100deg/s
+  antitop_follow_angle: 24.5 # (deg)小陀螺时，让yaw跟随的角度最大值。若超过则在另一边等待
+  max_lost_frames: 10 # 最大的丢失帧数。超过就从TEMP_LOST变为LOST
+  antitop_can_shoot_angle_thin: 20.0 # (deg)小陀螺时，shoot_flag置为true的角度最大值(双阈值，如果上一帧没有发弹，用这个阈值进入发弹模式)
+  antitop_can_shoot_angle_wide: 23.0 # (deg)小陀螺时，shoot_flag置为true的角度最大值(双阈值，如果上一帧发弹了，用这个阈值退出发弹模式)
+
+# 以下Tracker参数仅对前哨站生效
+  outpost_radius: 0.275 # (m)前哨站半径，固定值
+  outpost_max_lost_frames: 60 # 前哨站最大的丢失帧数。超过就从TEMP_LOST变为LOST
+  outpost_can_shoot_angle_thin: 30.0 # (deg)前哨站跟随并击打的角度范围(双阈值，如果上一帧没有发弹，用这个阈值进入发弹模式)
+  outpost_can_shoot_angle_wide: 35.0 # (deg)前哨站跟随并击打的角度范围(双阈值，如果上一帧发弹了，用这个阈值退出发弹模式)
+
+  shoot_forbiden_d_palstance: 6.0 # (deg)小陀螺时，发弹禁止的角速度变化
+
+Filter:
+  close_to_far_distance: 5.0 # (m)近到远的滤波器切换距离阈值
+  far_to_close_distance: 4.6 # (m)远到近的滤波器切换距离阈值
+
+
+KFXYZ:
+  process_noise_cov: !!opencv-matrix
+    rows: 6
+    cols: 6
+    dt: f
+    data: [ 1.0,  0,  0,  0,  0,  0,
+            0,  1.0,  0,  0,  0,  0,
+            0,  0,  1.0,  0,  0,  0,
+            0,  0,  0,  2e+1,  0,  0,
+            0,  0,  0,  0,  4e+1,  0,
+            0,  0,  0,  0,  0,  1e+1]
+
+
+  measurement_noise_cov: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: f
+    data: [ 9e-8,  0,  0,
+            0,  3e-8,  0,
+            0,  0,  1e-7 ]
+
+  far_process_noise_cov: !!opencv-matrix
+    rows: 6
+    cols: 6
+    dt: f
+    data: [ 1.0,  0,  0,  0,  0,  0,
+            0,  1.0,  0,  0,  0,  0,
+            0,  0,  1.0,  0,  0,  0,
+            0,  0,  0,  5e+0,  0,  0,
+            0,  0,  0,  0,  1.2e+1,  0,
+            0,  0,  0,  0,  0,  1e+1 ]
+
+  far_measurement_noise_cov: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: f
+    data: [ 8e-7,  0,  0,
+            0,  3e-7,  0,
+            0,  0,  1e-7 ]
+
+KFYaw:
+  process_noise_cov: !!opencv-matrix
+    rows: 2
+    cols: 2
+    dt: f
+    data: [ 2e-5,  0, 
+            0, 2e-3 ]
+
+  measurement_noise_cov: !!opencv-matrix
+    rows: 1
+    cols: 1
+    dt: f
+    data: [ 5e-4 ]
+
+# 之前的
+# KFYaw:
+#   process_noise_cov: !!opencv-matrix
+#     rows: 2
+#     cols: 2
+#     dt: f
+#     data: [ 2e-5,  0, 
+#             0, 2e-3 ]
+
+#   measurement_noise_cov: !!opencv-matrix
+#     rows: 1
+#     cols: 1
+#     dt: f
+#     data: [ 5e-4 ]
+
+UKFXY:
+  process_noise_cov: !!opencv-matrix
+    rows: 4
+    cols: 4
+    dt: f
+    data: [ 1.0,  0,  0,  0,
+            0,  1.0,  0,  0,
+            0,  0,  1e+2,  0,
+            0,  0,  0,  1e+2 ]
+
+  measurement_noise_cov: !!opencv-matrix
+    rows: 2
+    cols: 2
+    dt: f
+    data: [ 8e-3,  0,
+            0,  8e-3 ]
+
+  far_process_noise_cov: !!opencv-matrix
+    rows: 4
+    cols: 4
+    dt: f
+    data: [ 1.0,  0,  0,  0,
+            0,  1.0,  0,  0,
+            0,  0,  5e+1,  0,
+            0,  0,  0,  5e+1 ]
+
+  far_measurement_noise_cov: !!opencv-matrix
+    rows: 2
+    cols: 2
+    dt: f
+    data: [ 1e-2,  0,
+            0,  1e-2 ]

@@ -1,0 +1,33 @@
+/**:
+  ros__parameters:
+    detection_sub_topic: "/highshoot/detection"
+    comm_recv_sub_topic: "/serial/comm_recv"
+    localization_sub_topic: "/Odometry"
+    comm_send_pub_topic: "/serial/comm_send"
+
+    shoot_compensate_pitch: 0.0 # 单位: deg
+    shoot_compensate_yaw: -0.4 # 单位: deg
+
+    lidar_to_gimbal_x: 0.0
+    lidar_to_gimbal_y: 0.0
+    lidar_to_gimbal_z: 0.0
+    lidar_to_gimbal_qx: 0.0
+    lidar_to_gimbal_qy: 0.0
+    lidar_to_gimbal_qz: 0.0
+    lidar_to_gimbal_qw: 1.0
+
+    blue_base_to_odom_x: 0.0
+    blue_base_to_odom_y: 0.0
+    blue_base_to_odom_z: 0.0
+
+    red_base_to_odom_x: 0.0
+    red_base_to_odom_y: 0.0
+    red_base_to_odom_z: 0.0
+
+    blue_outpost_to_odom_x: 0.0
+    blue_outpost_to_odom_y: 0.0
+    blue_outpost_to_odom_z: 0.0
+
+    red_outpost_to_odom_x: 0.0
+    red_outpost_to_odom_y: 0.0
+    red_outpost_to_odom_z: 0.0

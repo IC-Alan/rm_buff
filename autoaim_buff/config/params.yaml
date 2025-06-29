@@ -1,0 +1,51 @@
+/**:
+  ros__parameters:
+    enable_predict: true
+    enable_debug: true
+    debug_mode : false # false: Armor mode, true: Buff mode
+    debug_prediction_time: 0.07 # 预测的时间，单位为秒。
+    debug_target_color: 0 # 0: all 1: blue 2: red
+    debug_target_armor: 3
+    debug_buff_mode: 1 # 0: SMALL BUFF 1: BIG BUFF 2： COUNTER SMALL BUFF 3: COUNTER BIG BUFF
+    debug_bullet_speed: 24 # 单位: m/s
+    # a 0.8 w 1.885
+    # 单位: m
+
+    cam_to_gimbal_x: 0.1045
+    cam_to_gimbal_y: 0.11492
+    cam_to_gimbal_z: 0.0409
+
+    fric_to_gimbal_x: 0.0885
+    fric_to_gimbal_y: 0.0
+    fric_to_gimbal_z: 0.0
+
+    VTM_to_cam_x: 0.0
+    VTM_to_cam_y: -0.11492
+    VTM_to_cam_z: 0.0
+
+    filter_distance: 6.0
+    # 单位: degree
+    imu_compensate_pitch: 0.0
+    imu_compensate_yaw: -6.0
+    predicted_to_gimbal_thres: 10
+
+    shoot_compensate_pitch: 2.0 # 单位: deg
+    shoot_compensate_yaw: -0.7 # 单位: deg
+
+    buff_change_threshold : 50
+    buff_noise_threshold: 8
+    t_delay: 0.098 # 单位: s
+    
+    # 符是3 4
+    if_predict : true
+    mode : 0x03
+    msg_num : 1
+    dir_time: 51
+    if_shoot : true 
+    shoot_frames : 80
+    a_weight: 1.71
+    w_weight: 1.0
+    # camera_info_topic: "/camera/color/camera_info"
+    # buff_sub_topic_: "/detection"
+    # comm_pub_topic: "/serial/comm_send"
+    # position_pub_topic: "/debug/position"

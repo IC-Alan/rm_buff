@@ -1,0 +1,22 @@
+/**:
+  ros__parameters:
+    enable_print_state: true
+
+    # 默认的目标装甲板。收到决策发送的消息或自主决策启动后会被覆盖
+    target_armor: 0
+
+    # 默认的目标敌人颜色和弹速。收到串口节点发送的robot_info消息后会被覆盖
+    target_color: 0 # 0: blue, 1: red, 2: gray
+    bullet_speed: 24.0 # 单位: m/s
+
+    # control_to_aim_time: 0.063 # 单位: s
+    # control_to_shoot_time: 0.055 # 单位: s
+    control_to_aim_time: 0.0608 # 单位: s
+    control_to_shoot_time: 0.066 # 单位: s
+    shoot_compensate_pitch: 1.8 # 单位: deg
+    shoot_compensate_yaw: 0.0 # 单位: deg
+
+    camera_info_topic: "/camera/color/camera_info"
+    detection_sub_topic: "armor/detection"
+    comm_recv_sub_topic: "/serial/comm_recv"
+    comm_send_pub_topic: "/serial/comm_send"

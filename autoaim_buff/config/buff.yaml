@@ -1,0 +1,31 @@
+%YAML:1.0
+
+# den             : [1,     -0.3351 ,      0.5259   ,  -0.0762    , 0.0201]
+# num             : [0.0697   , 0.2787  ,  0.4180 ,   0.2787  , 0.0697]
+# lower_bound     : [0.6, 1.7, -3.1415926, 0.9]
+# upper_bound     : [1.2, 2.2, 3.1415926, 1.5]
+# iteration       : 1
+# rmse_threshold  : 2.
+# max_rmse        : 0.01
+# min_v_threshold : 20
+# ignore_time     : 30
+# fit_time        : 300
+# follow_time     : 10
+# max_history_size: 60
+
+# old 
+
+# # new 
+
+den             : [1,     -0.3351 ,      0.5259   ,  -0.0762    , 0.0201]
+num             : [0.0697   , 0.2787  ,  0.4180 ,   0.2787  , 0.0697]
+lower_bound     : [0.7, 1.8, -3.1415926, 1.0]
+upper_bound     : [1.1, 2.1, 3.1415926, 1.35]
+iteration       : 3
+rmse_threshold  : 2.
+max_rmse        : 5
+min_v_threshold : 20
+ignore_time     : 10
+fit_time        : 100
+follow_time     : 10
+max_history_size: 400

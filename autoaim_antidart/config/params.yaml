@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+
+    camera_info_topic: "/camera/color/camera_info"
+    detection_sub_topic: "antidart/detection"
+    comm_recv_sub_topic: "/serial/comm_recv"
+    comm_send_pub_topic: "/serial/comm_send"
+
+    # 默认的弹速。收到串口节点发送的消息后会被覆盖
+    bullet_speed: 24.0 # 单位: m/s
+
+    target_to_light_z: 0.08 # 飞镖靶到引导灯的高度
+
+    shoot_compensate_pitch: -1.0 # 单位: deg
+    shoot_compensate_yaw: -1.2 # 单位: deg

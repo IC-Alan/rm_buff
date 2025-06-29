@@ -1,0 +1,22 @@
+/**:
+  ros__parameters:
+    image_topic: "camera/color/image_raw"
+    image_detected_topic: "debug/detected_image"
+    serial_topic: "serial/comm_recv"
+
+    armor_send_topic: "armor/detection"
+    buff_send_topic: "buff/detection"
+    highshoot_send_topic: "highshoot/detection"
+    antidart_send_topic: "antidart/detection"
+
+    armor_model_path: "v1120250429.engine"
+    #armor_model_path: "v11new.engine"
+    armor_confidence_threshold: 0.3
+    armor_nms_threshold: 0.4
+
+    buff_model_path: "buff250514.engine"
+    buff_confidence_threshold: 0.3
+    buff_nms_threshold: 0.4
+
+    enable_detected_image: false
+    enable_fps: false
