@@ -33,6 +33,8 @@
 
 namespace autoaim_buff
 {
+
+    
     using autoaim_interfaces::msg::CommRecv;
     using autoaim_interfaces::msg::CommSend;
     using autoaim_interfaces::msg::Detection;
@@ -42,22 +44,38 @@ namespace autoaim_buff
     using namespace cv;
     using namespace std;
     using namespace Eigen;
-    //结构体，存储时间、角度、速度信息
+
+    //结构体，存储时间、角度、速度信息，用于曲线拟合
     struct BuffData{
         float t;
         float angle;
         float speed;
+        //构造函数
         BuffData(float t_,float angle_,float speed_):t(t_), angle(angle_),speed(speed_){}
     };
-    //拟合函数
+
+    //代价函数结构体 用于非线性最小二乘法拟合
     struct CURVE_FITTING_COST{
+        /**
+         * @brief 构造函数
+         * @param x 时间点
+         * @param y 对应的角度值
+         */
         CURVE_FITTING_COST(double x, double y) : _x(x), _y(y) {}
+        
+        /**
+         * @brief 残差计算函数
+         * @param params 拟合参数 [a, w, w0, b]
+         * @param residual 残差输出
+         * @return 是否成功计算残差
+         */
         template <typename T>
         bool operator()(const T *const params, T *residual) const
         {
-
+            // 计算拟合值: v = a*sin(w*t + w0) + b
             T v = params[0]* ceres::sin(params[1] * T(_x) + params[2])+ params[3] ;
-            //这里筛除异常值
+            
+            // 筛除异常值，只处理合理范围内的数据
             if (T(_y) < T(2.2) && T(_y) > T(0)) {
                 residual[0] = T(_y) - v;
                 return true;  // 成功计算残差
@@ -71,6 +89,7 @@ namespace autoaim_buff
     };
     //空变换
     const geometry_msgs::msg::Transform EMPTY_TRANSFORM;
+    
     // 将消息转换到秒
     double to_sec(builtin_interfaces::msg::Time t)
     {
@@ -211,22 +230,25 @@ namespace autoaim_buff
         std::shared_ptr<rclcpp::Publisher<autoaim_interfaces::msg::DebugInfo>> debug_send_pub_;
     };
 
-     void BuffNode::get_parameters()
+    void BuffNode::get_parameters()
     {
        
         //加载buff参数
         FileStorage fs(ceres_params_path, FileStorage::READ);
+        // 加载滤波器参数
         //分母
         cv::FileNode denNode = fs["den"];
         for (auto it = denNode.begin(); it != denNode.end(); ++it)
         {
             den.push_back(*it);
         }
+        //分子
         cv::FileNode numNode = fs["num"];
         for (auto it = numNode.begin(); it != numNode.end(); ++it)
         {
             num.push_back(*it);
         }
+        //拟合参数加载
         fs["lower_bound"]       >> lower_bound;
         fs["upper_bound"]       >> upper_bound;
         fs["rmse_threshold"]    >> rmse_threshold;
@@ -243,6 +265,8 @@ namespace autoaim_buff
         a_weight = declare_parameter("a_weight", 0.0);
         w_weight = declare_parameter("w_weight", 0.0);
         filter.SetHypParam(den, num);
+
+        //拟合参数初始化
         params = {(0.784 + 1.045) / 2,(1.884 + 2) / 2,0,2.09 - (0.784 + 1.045) / 2};
         last_params = params;
         dir_time = declare_parameter("dir_time", 0);
@@ -335,6 +359,7 @@ namespace autoaim_buff
 
     }
 
+//获取坐标变换 target是目标，source是源，time_point是时间
     geometry_msgs::msg::Transform BuffNode::try_get_transform(
         const std::string &target,
         const std::string &source,
@@ -371,7 +396,7 @@ namespace autoaim_buff
     //将buff_target先pnp并转到chassis_yaw下，再调用下面那个函数计算实际角度
     float BuffNode::cal_angle(Detection& buff_target,const rclcpp::Time& time_stamp)
     {
-        
+     //解算并实时发布buff到相机坐标系下的变换
         geometry_msgs::msg::TransformStamped buff_to_cam;
         buff_to_cam.header.stamp = time_stamp;
         buff_to_cam.header.frame_id = "autoaim_camera";
@@ -380,7 +405,7 @@ namespace autoaim_buff
         pnp_solver_->solve_pnp(buff_target, buff_to_cam.transform);
         tf_broadcaster_->sendTransform(buff_to_cam);
 
-         //进入滤波前得先转到云台坐标系下处理
+         //进入滤波前得先转到云台坐标系下处理 获取Buff目标在云台坐标系中的位置和姿态
         auto buff_to_chassis_yaw = try_get_transform("chassis_yaw", "buff", time_stamp);
 
         //计算出当前角度返回
@@ -393,9 +418,11 @@ namespace autoaim_buff
     {
 
         //先得到R和t
+        //平移向量
         buff_tvec.at<float>(0) = buff_to_chassis_yaw.translation.x;
         buff_tvec.at<float>(1) = buff_to_chassis_yaw.translation.y;
         buff_tvec.at<float>(2) = buff_to_chassis_yaw.translation.z;
+        //旋转矩阵
         tf2::Quaternion quaternion(
         buff_to_chassis_yaw.rotation.x,
         buff_to_chassis_yaw.rotation.y,
@@ -405,22 +432,27 @@ namespace autoaim_buff
         // 将四元数转换为旋转矩阵
         tf2::Matrix3x3 rotation_matrix(quaternion);
         // 将旋转矩阵转为 OpenCV 的 cv::Mat 类型
-        // 将旋转矩阵转为 OpenCV 的 cv::Mat 类型
+     
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 buff_R.at<float>(i, j) = rotation_matrix[i][j];
             }
         }
-        //计算R标真实位置,R标位置在z轴负方向0.7m处
+        //计算R标真实位置,R标位置在z轴负方向0.7m处 
         Mat R_to_buff = (Mat_<float>(3, 1) << 0.0f, 0.0f, -0.7f);
-        //R作一个惯性滤波
+
+        //buff_R是buff到云台的旋转矩阵
+        
+        //R_flag 是 R标在世界坐标系中的位置 R作一个惯性滤波
         if(R_flag.at<float>(0, 0)==0)
-        R_flag =buff_R*R_to_buff + buff_tvec;
+            R_flag =buff_R*R_to_buff + buff_tvec;
         else
-        R_flag =(R_flag+buff_R*R_to_buff + buff_tvec)/2.0f;
+            R_flag =(R_flag+buff_R*R_to_buff + buff_tvec)/2.0f;
         // R_flag =buff_R*R_to_buff + buff_tvec;
+
         cout<<"buff_tvec"<<buff_tvec<<endl;
         cout<<"R_flag"<<R_flag<<endl;
+        
         //计算当前角度位置
         //世界坐标系向左是y，向前是x，向上是z
         //这里认为从水平向右开始为0度，逆时针增加到360度
@@ -437,14 +469,18 @@ namespace autoaim_buff
 
     //预测实际位置的函数
     cv::Point3f BuffNode::pred_target(
-        const float real_angle,const float bullet_speed, 
-        const float img_to_aim_time,const float t_now
+        const float real_angle,
+        const float bullet_speed, 
+        const float img_to_aim_time,// 图像处理到瞄准的时间
+        const float t_now
         )
     {
         //和装甲板一样
+        
         const float img_to_hit_time_1 = math::get_distance(buff_tvec) / bullet_speed;
         final_angle = FinalAngle(real_angle,t_now,img_to_hit_time_1);
         Point3f final_positon = FinalPosition(final_angle);
+
         const float img_to_aim_time_2 = img_to_aim_time + math::get_distance(final_positon) / bullet_speed;
         final_angle = FinalAngle(real_angle,t_now,img_to_aim_time_2);
         final_positon = FinalPosition(final_angle);
@@ -487,15 +523,17 @@ namespace autoaim_buff
         buff_status = BUFF_STATUS::INITIATION;
     }
     
-    void BuffNode::FitCurveAsync(){
-    std::lock_guard<std::mutex> lock(mtx);  // 确保复制数据时的线程安全
-    auto historyData = historyBuffDataList;
-    auto filteredData = filteredAngleList;
-    if (!futureResult.valid() || futureResult.wait_for(milliseconds(0)) == future_status::ready)
+    //异步执行
+    void BuffNode::FitCurveAsync()
     {
-        // futureResult.get();  // 获取结果以处理可能的异常
-        futureResult = std::async(std::launch::async, &BuffNode::FitCurve, this, historyData, filteredData);
-    }
+        std::lock_guard<std::mutex> lock(mtx);  // 确保复制数据时的线程安全
+        auto historyData = historyBuffDataList;
+        auto filteredData = filteredAngleList;
+        if (!futureResult.valid() || futureResult.wait_for(milliseconds(0)) == future_status::ready)
+        {
+            // futureResult.get();  // 获取结果以处理可能的异常
+            futureResult = std::async(std::launch::async, &BuffNode::FitCurve, this, historyData, filteredData);
+        }
 
 }
 
@@ -558,6 +596,7 @@ namespace autoaim_buff
         cameraConfig["camera_D_MAT"] >> this->VTM_distortion_ ;
     }
 
+//核心拟合算法
     void BuffNode::FitCurve(const vector<BuffData> &historyBuffDataList_, const vector<float> &filteredAngleList_)
     {
         // 拟合
@@ -595,7 +634,7 @@ namespace autoaim_buff
         } while (rmse_ep > max_rmse && maxIter > iter);
         params = Eigen::Vector4d(fit_params[0], fit_params[1], fit_params[2], fit_params[3]);
     }
-
+//算均方误差
     float BuffNode::CalcRMSE(VectorXd params)
     {
 
@@ -626,7 +665,8 @@ namespace autoaim_buff
     //根据当前角度和预测时间来计算最终角度
     float BuffNode::FinalAngle(float angle, float t, float dt)
     {
-        float offset;
+        float offset; // 角度偏移量
+
         if(mode_==BIG_MODE)
         {
             float a = params[0];
@@ -637,7 +677,9 @@ namespace autoaim_buff
             float lower = -a / w * cos(w * t + theta) + b * t;
             float upper = -a / w * cos(w * (t+dt) + theta) + b * (t+dt);
             offset = R2D(upper - lower);
-        }else{
+        }
+        else
+        {
             offset = 60*dt;
         }
         angle += direction * offset;

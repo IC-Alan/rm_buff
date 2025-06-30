@@ -129,6 +129,7 @@ namespace autoaim_buff
                 << "    direction   "<< direction
                 << "    count   "<< count
                 << endl;
+                
                 //超过滑窗就动态更新
                 if (historyBuffDataList.size() > max_history_size)
                 {
@@ -280,9 +281,10 @@ namespace autoaim_buff
                 target_to_chassis_yaw.transform.translation.z =  buff_tvec.at<float>(2) ;
             }
             tf_broadcaster_->sendTransform(target_to_chassis_yaw);
-            //图传
+            //图传target_buff
             cv::Point2f point_in_VTM = this->get_pretiction_VTM(msg->header.stamp);
-
+            
+            //Buff在“shoot”坐标系下的位置和姿态
             geometry_msgs::msg::Transform target_to_shoot;
                     try {
                         // shoot是原点在摩擦轮系，但姿态没有pitch和roll的系。解出来的角度方便控车
@@ -296,6 +298,8 @@ namespace autoaim_buff
                         return;
                     }
 
+
+//根据目标在shoot坐标系下的位置，计算发射所需的pitch和yaw角度，判断是否可以发射
             // 注意：pitch向下为正
             const float target_pitch = - trajectory::calc_pitch(
                 target_to_shoot.translation.x,
